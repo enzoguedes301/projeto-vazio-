@@ -125,13 +125,20 @@ som ao chegar pedido novo. Ações: **marcar entregue**, **concluir**, **cancela
 
 ## Deploy
 
-Precisa de hospedagem que rode **Node** com disco persistente pro SQLite:
+O banco é libSQL: **arquivo local** quando `TURSO_DATABASE_URL` não existe, **Turso (nuvem)** quando existe.
 
-- **Railway / Render / Fly.io**: `npm start`, porta via `PORT`, variáveis do `.env` nas configurações,
-  e um **volume persistente** montado em `server/` — senão o banco some a cada deploy.
-- **VPS** (Ubuntu + Nginx): `pm2 start server/index.js --name cardapio`; Nginx com
-  `proxy_pass http://127.0.0.1:8090` e HTTPS via Certbot. Atrás de proxy, o IP vem em `X-Forwarded-For` (já tratado).
-- **Vercel / serverless**: não tem disco — exige trocar `server/db.js` por um banco externo (Turso/Neon).
+### Vercel (configurado)
+- `api/index.js` é a função serverless (mesmo código de `server/index.js`); `public/` é servido como estático;
+  `vercel.json` faz as reescritas (`/api/*`, `/webhooks/*`, `/admin*` → função; resto → `index.html`).
+- Banco: integração **Turso** do marketplace (`vercel integration add turso`) — injeta `TURSO_DATABASE_URL`
+  e `TURSO_AUTH_TOKEN` no projeto.
+- Variáveis: `vercel env add TRONFY_API_KEY production` (idem `META_PIXEL_TOKEN`, `ADMIN_TOKEN`).
+- Deploy: `vercel deploy --prod` ou push na branch `main` (repo conectado).
+- Acesso público: em Settings → Deployment Protection, "Vercel Authentication" desligado.
+
+### Servidor próprio (Railway / Render / VPS)
+`npm start`, porta via `PORT`, variáveis do `.env`. Sem `TURSO_*` o banco fica em `server/dados.sqlite`
+(precisa de disco persistente). Atrás de proxy o IP vem em `X-Forwarded-For` (já tratado).
 
 ## Editar
 
