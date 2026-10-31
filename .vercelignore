@@ -1,0 +1,5 @@
+.env
+.claude
+server/dados.sqlite*
+scripts
+README.md

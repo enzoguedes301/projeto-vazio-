@@ -47,7 +47,7 @@ async function nominatim(params, userAgent) {
 //   rua+número+bairro+cidade (texto livre, desambigua ruas repetidas) -> rua+número -> rua -> CEP -> bairro
 async function geocodificar(end, cidade, cfg) {
   const chave = norm([end.zip_code, end.street, end.house_number, end.neighborhood, end.city].join("|"));
-  const cache = geocache.ler(chave);
+  const cache = await geocache.ler(chave);
   if (cache) return cache.lat != null ? { lat: cache.lat, lon: cache.lon } : null;
 
   const ua = cfg.geocoder.user_agent;
@@ -66,7 +66,7 @@ async function geocodificar(end, cidade, cfg) {
     if (achado) break;
     await new Promise((r) => setTimeout(r, 1100)); // limite do Nominatim
   }
-  geocache.gravar(chave, achado ? achado.lat : null, achado ? achado.lon : null, city);
+  await geocache.gravar(chave, achado ? achado.lat : null, achado ? achado.lon : null, city);
   return achado;
 }
 

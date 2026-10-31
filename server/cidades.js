@@ -1,13 +1,14 @@
 // Cidade do lead: detectada pelo IP, resolvida pelo slug da URL ou buscada por texto.
-// Qualquer cidade do Brasil funciona — ela é registrada no SQLite na primeira vez
-// (com as coordenadas do centro, usadas como referência do frete).
+// Qualquer cidade do Brasil funciona — ela é registrada no banco na primeira vez,
+// com uma rua real perto do centro (endereço do "restaurante" daquela cidade) e as
+// coordenadas desse ponto, usadas como referência do frete.
 const fs = require("node:fs");
 const path = require("node:path");
 const { cidadesDb } = require("./db");
 
-const RAIZ = path.join(__dirname, "..");
-const cfgCidades = () => JSON.parse(fs.readFileSync(path.join(RAIZ, "dados", "cidades.json"), "utf8"));
-const modelo = () => JSON.parse(fs.readFileSync(path.join(RAIZ, "dados", "perfil_modelo.json"), "utf8"));
+const DADOS = path.join(__dirname, "..", "public", "dados");
+const cfgCidades = () => JSON.parse(fs.readFileSync(path.join(DADOS, "cidades.json"), "utf8"));
+const modelo = () => JSON.parse(fs.readFileSync(path.join(DADOS, "perfil_modelo.json"), "utf8"));
 
 const UF_NOME = {
   AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia", CE: "Ceará", DF: "Distrito Federal",
@@ -19,6 +20,7 @@ const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toL
 const log = (...a) => console.log(new Date().toLocaleTimeString("pt-BR"), ...a);
 const UF_POR_NOME = Object.fromEntries(Object.entries(UF_NOME).map(([uf, n]) => [norm(n), uf]));
 const slugify = (nome, uf) => `${norm(nome).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${uf.toLowerCase()}`;
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function getJson(url, headers = {}, timeoutMs = 4000) {
   const r = await fetch(url, { headers, signal: AbortSignal.timeout(timeoutMs) });
@@ -47,7 +49,7 @@ async function nominatim(params, ua) {
 const centroDaCidade = (nome, uf, ua) => nominatim({ city: nome, state: UF_NOME[uf] || uf, country: "Brasil" }, ua);
 const buscarCidade = (texto, ua) => nominatim({ q: `${texto}, Brasil` }, ua);
 
-// coordenadas de um endereço (rua + número) — ponto exato do "restaurante" da cidade
+// coordenadas de um endereço (rua + número)
 async function geocodeEndereco({ rua, numero, bairro, cep }, nome, uf, ua) {
   const base = { city: nome, state: UF_NOME[uf] || uf, country: "Brasil", format: "json", limit: "1", countrycodes: "br" };
   const tentativas = [
@@ -61,15 +63,14 @@ async function geocodeEndereco({ rua, numero, bairro, cep }, nome, uf, ua) {
       const j = await getJson(`https://nominatim.openstreetmap.org/search?${new URLSearchParams(t)}`, { "User-Agent": ua }, 6000);
       if (j && j[0]) return { lat: parseFloat(j[0].lat), lon: parseFloat(j[0].lon) };
     } catch { /* próxima tentativa */ }
-    await new Promise((r) => setTimeout(r, 1100)); // limite do Nominatim: 1 req/s
+    await espera(1100); // limite do Nominatim: 1 req/s
   }
   return null;
 }
 
 // ------------------------------------------------- rua real da cidade
-// Plano A: sorteia um ponto a até 1,5 km do centro da cidade e pergunta ao
-// Nominatim qual rua fica ali (reverse geocoding). Garante restaurante central
-// e já devolve as coordenadas exatas. Sorteio é feito uma vez e fica gravado.
+// Plano A: sorteia um ponto a até 1,5 km do centro e pergunta ao Nominatim qual rua
+// fica ali (reverse geocoding). Garante restaurante central e já devolve as coordenadas.
 async function ruaPertoDoCentro(lat, lon, ua) {
   for (let i = 0; i < 3; i++) {
     const dist = 300 + Math.random() * 1200, ang = Math.random() * 2 * Math.PI;
@@ -87,7 +88,7 @@ async function ruaPertoDoCentro(lat, lon, ua) {
         };
       }
     } catch { /* tenta outro ponto */ }
-    await new Promise((r) => setTimeout(r, 1100));
+    await espera(1100);
   }
   return null;
 }
@@ -114,23 +115,21 @@ async function ruaAleatoria(nome, uf) {
 // ------------------------------------------------------------- registro
 async function registrar({ nome, uf, lat, lon }, ua) {
   const slug = slugify(nome, uf);
-  const existente = cidadesDb.porSlug(slug);
+  const existente = await cidadesDb.porSlug(slug);
   if (existente) return existente;
   if (lat == null || lon == null) {
     const c = await centroDaCidade(nome, uf, ua);
     if (c) { nome = c.nome; lat = c.lat; lon = c.lon; }
   }
-  // endereço do "restaurante" desta cidade: rua real perto do centro; a referência
-  // do frete é o ponto exato dela (se o mapa falhar, fica o centro da cidade)
   let end = null;
   if (lat != null && lon != null) {
-    await new Promise((r) => setTimeout(r, 1100));
+    await espera(1100);
     end = await ruaPertoDoCentro(lat, lon, ua);
   }
   if (!end) {
     const viaCep = await ruaAleatoria(nome, uf);
     if (viaCep) {
-      await new Promise((r) => setTimeout(r, 1100));
+      await espera(1100);
       const ponto = await geocodeEndereco(viaCep, nome, uf, ua);
       end = { ...viaCep, lat: ponto ? ponto.lat : null, lon: ponto ? ponto.lon : null };
     }
@@ -159,8 +158,8 @@ async function detectarPorIp(ip, ua) {
     const uf = UF_POR_NOME[norm(g.region)];
     if (g.country_code === "BR" && g.city && uf) {
       cidade = await registrar({ nome: g.city, uf, lat: null, lon: null }, ua);
-      if (cidade.lat == null && g.latitude) cidade = cidadesDb.salvar({ ...cidade, lat: +g.latitude, lon: +g.longitude });
-      log(`cidade detectada por IP ${chave}: ${cidade.nome} - ${cidade.uf} → ${cidade.rua}, ${cidade.numero}`);
+      if (cidade.lat == null && g.latitude) cidade = await cidadesDb.salvar({ ...cidade, lat: +g.latitude, lon: +g.longitude });
+      log(`cidade detectada por IP: ${cidade.nome} - ${cidade.uf} → ${cidade.rua}, ${cidade.numero}`);
     }
   } catch { /* sem rede: padrão */ }
   cacheIp.set(chave, { cidade, em: Date.now() });
@@ -170,7 +169,7 @@ async function detectarPorIp(ip, ua) {
 // ------------------------------------------------------- slug da URL
 async function resolverSlug(slug, ua) {
   if (!slug) return null;
-  const existente = cidadesDb.porSlug(slug);
+  const existente = await cidadesDb.porSlug(slug);
   if (existente) return existente;
   const m = String(slug).match(/^(.+)-([a-z]{2})$/i);
   if (!m || !UF_NOME[m[2].toUpperCase()]) return null;
@@ -186,7 +185,7 @@ async function padrao(ua) {
 
 function ipDaRequisicao(req) {
   const xf = req.headers["x-forwarded-for"];
-  return (xf ? String(xf).split(",")[0].trim() : req.socket.remoteAddress) || "";
+  return (xf ? String(xf).split(",")[0].trim() : req.socket && req.socket.remoteAddress) || "";
 }
 
 // perfil completo que o app consome, com a cidade preenchida

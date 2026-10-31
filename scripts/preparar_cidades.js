@@ -22,7 +22,7 @@ const linhas = fs.readFileSync(arquivo, "utf8").split(/\r?\n/).map((l) => l.trim
     const m = linha.match(/^(.+?)\s*[-\/,]\s*([A-Za-z]{2})$/);
     if (!m || !Cidades.UF_NOME[m[2].toUpperCase()]) { console.log(`?  ${linha}  (formato: Cidade - UF)`); falha++; continue; }
     const nome = m[1], uf = m[2].toUpperCase();
-    const existente = cidadesDb.todas().find((c) => c.nome.localeCompare(nome, "pt", { sensitivity: "base" }) === 0 && c.uf === uf);
+    const existente = (await cidadesDb.todas()).find((c) => c.nome.localeCompare(nome, "pt", { sensitivity: "base" }) === 0 && c.uf === uf);
     if (existente) { console.log(`=  ${existente.nome} - ${uf}: ${existente.rua}, ${existente.numero} (já existia)`); ok++; continue; }
     try {
       const achada = await Cidades.buscarCidade(`${nome}, ${Cidades.UF_NOME[uf]}`, cfg.geocoder.user_agent);
@@ -35,5 +35,5 @@ const linhas = fs.readFileSync(arquivo, "utf8").split(/\r?\n/).map((l) => l.trim
     }
     await new Promise((r) => setTimeout(r, 1100));
   }
-  console.log(`\n${ok} ok, ${falha} com problema. Total no banco: ${cidadesDb.todas().length}`);
+  console.log(`\n${ok} ok, ${falha} com problema. Total no banco: ${(await cidadesDb.todas()).length}`);
 })();
