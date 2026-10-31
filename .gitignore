@@ -2,3 +2,7 @@ server/dados.sqlite*
 node_modules/
 .env
 .claude/
+.vercel
+.env*
+.env.local
+.env*.local

@@ -3,3 +3,4 @@
 server/dados.sqlite*
 scripts
 README.md
+.env.local
