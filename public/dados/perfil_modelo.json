@@ -47,44 +47,49 @@
   "business_hours": {
     "sunday": [
       [
-        "18:30",
+        "17:30",
         "23:00"
       ]
     ],
     "monday": [
       [
-        "18:30",
+        "17:30",
         "23:00"
       ]
     ],
-    "tuesday": [],
+    "tuesday": [
+      [
+        "17:30",
+        "23:00"
+      ]
+    ],
     "wednesday": [
       [
-        "18:30",
+        "17:30",
         "23:00"
       ]
     ],
     "thursday": [
       [
-        "18:30",
+        "17:30",
         "23:00"
       ]
     ],
     "friday": [
       [
-        "18:30",
+        "17:30",
         "23:00"
       ]
     ],
     "saturday": [
       [
-        "18:30",
+        "17:30",
         "23:00"
       ]
     ],
     "custom_dates": {},
-    "temporary_state": "open",
-    "temporary_state_end_at": "2026-10-30T18:30:00.000-03:00"
+    "temporary_state": null,
+    "temporary_state_end_at": null
   },
   "payment_methods": [
     {
@@ -211,31 +216,31 @@
     "quantity_of_orders_grouped": [],
     "delivery_period": {
       "sunday": [
-        "17:00",
+        "17:30",
         "23:00"
       ],
       "monday": [
-        "17:00",
+        "17:30",
         "23:00"
       ],
       "tuesday": [
-        "17:00",
+        "17:30",
         "23:00"
       ],
       "wednesday": [
-        "17:00",
+        "17:30",
         "23:00"
       ],
       "thursday": [
-        "17:00",
+        "17:30",
         "23:00"
       ],
       "friday": [
-        "17:00",
+        "17:30",
         "23:00"
       ],
       "saturday": [
-        "17:00",
+        "17:30",
         "23:00"
       ],
       "custom_dates": null
