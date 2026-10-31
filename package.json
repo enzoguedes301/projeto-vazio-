@@ -1,0 +1,13 @@
+{
+  "name": "cardapio-osaka",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cardápio multi-cidade com pedidos, acompanhamento automático e painel",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

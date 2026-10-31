@@ -1,0 +1,1 @@
+import{ac as a}from"./index-DXIKYQC4.js";const o={PENDING:"peding",GRANTED:"granted",DENIED:"denied",ERROR:"error",NO_SUPPORT:"no_support"},n=a(t=>({status:null,setStatus:s=>t({status:s})})),u={PENDING:"peding",GRANTED:"granted",DENIED:"denied",ERROR:"error",NO_SUPPORT:"no_support"},r=a(t=>({status:null,setStatus:s=>t({status:s})}));export{o as L,u as P,r as a,n as u};

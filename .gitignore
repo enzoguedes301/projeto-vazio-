@@ -1,0 +1,4 @@
+server/dados.sqlite*
+node_modules/
+.env
+.claude/

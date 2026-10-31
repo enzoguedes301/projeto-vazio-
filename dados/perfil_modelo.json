@@ -1,0 +1,257 @@
+{
+  "id": 0,
+  "name": "OSAKA Sushi Lounge",
+  "description": "",
+  "url_name": "",
+  "color": "#000000",
+  "phone_number": "null",
+  "observation_before_complete_order": null,
+  "cnpj": "",
+  "benefit_mode": "loyalty",
+  "street": "Rua das Cerejeiras",
+  "address_number": "120",
+  "address_complement": "Apenas delivery",
+  "neighborhood": "Centro",
+  "city": "",
+  "state": "",
+  "latitude": "",
+  "longitude": "",
+  "suggested_items_settings": null,
+  "instagram": null,
+  "required_fields_on_signup": null,
+  "ddi_allowed": [
+    "55"
+  ],
+  "free_delivery_from": null,
+  "minimum_order_value": 20.0,
+  "order_whatsapp": "5511999990000",
+  "on_deployment": false,
+  "local_timezone": "America/Sao_Paulo",
+  "preparation_time": 45,
+  "image": null,
+  "logo": "/img/75b930887a4d.png",
+  "thumbnail": "/img/8d6795ed3a2d.png",
+  "server_timestamp": "2026-10-31T13:52:34-03:00",
+  "custom_domain": null,
+  "facebook_pixel_api": true,
+  "payment_public_key": null,
+  "menu_active": true,
+  "delivery_feature_is_available": true,
+  "organization_info": {
+    "name": "",
+    "site_url": "",
+    "primary_color": null,
+    "enterprise_domain": ""
+  },
+  "custom_fields": [],
+  "business_hours": {
+    "sunday": [
+      [
+        "18:30",
+        "23:00"
+      ]
+    ],
+    "monday": [
+      [
+        "18:30",
+        "23:00"
+      ]
+    ],
+    "tuesday": [],
+    "wednesday": [
+      [
+        "18:30",
+        "23:00"
+      ]
+    ],
+    "thursday": [
+      [
+        "18:30",
+        "23:00"
+      ]
+    ],
+    "friday": [
+      [
+        "18:30",
+        "23:00"
+      ]
+    ],
+    "saturday": [
+      [
+        "18:30",
+        "23:00"
+      ]
+    ],
+    "custom_dates": {},
+    "temporary_state": "open",
+    "temporary_state_end_at": "2026-10-30T18:30:00.000-03:00"
+  },
+  "payment_methods": [
+    {
+      "id": 148126,
+      "name": "Dinheiro",
+      "fixed_fee": null,
+      "percentual_fee": null,
+      "observation": null,
+      "available_on_menu": true,
+      "available_for": [],
+      "available_order_timings": [],
+      "allow_on_customer_first_order": true,
+      "fiscal_kind": "money",
+      "online_payment_provider": null,
+      "kind": "money",
+      "brands": [
+        {
+          "id": 146198,
+          "name": null,
+          "kind": null,
+          "system_default": true
+        }
+      ]
+    },
+    {
+      "id": 149753,
+      "name": "Cartão de débito",
+      "fixed_fee": null,
+      "percentual_fee": null,
+      "observation": null,
+      "available_on_menu": true,
+      "available_for": [],
+      "available_order_timings": [],
+      "allow_on_customer_first_order": true,
+      "fiscal_kind": "debit_card",
+      "online_payment_provider": null,
+      "kind": "debit_card",
+      "brands": [
+        {
+          "id": 146201,
+          "name": null,
+          "kind": null,
+          "system_default": true
+        }
+      ]
+    },
+    {
+      "id": 149752,
+      "name": "Cartão de crédito",
+      "fixed_fee": null,
+      "percentual_fee": null,
+      "observation": null,
+      "available_on_menu": true,
+      "available_for": [],
+      "available_order_timings": [],
+      "allow_on_customer_first_order": true,
+      "fiscal_kind": "credit_card",
+      "online_payment_provider": null,
+      "kind": "credit_card",
+      "brands": [
+        {
+          "id": 146202,
+          "name": null,
+          "kind": null,
+          "system_default": true
+        }
+      ]
+    },
+    {
+      "id": 990001,
+      "name": "Pix",
+      "fixed_fee": null,
+      "percentual_fee": null,
+      "observation": null,
+      "available_on_menu": true,
+      "available_for": [],
+      "available_order_timings": [],
+      "allow_on_customer_first_order": true,
+      "fiscal_kind": "dynamic_instant_payment_pix",
+      "online_payment_provider": null,
+      "kind": "pix_auto",
+      "brands": [
+        {
+          "id": 990002,
+          "name": null,
+          "kind": null,
+          "system_default": true
+        }
+      ]
+    }
+  ],
+  "flags": {
+    "hide_order_status_from_client": false,
+    "hide_company_address": false,
+    "document_on_order_invoice": true,
+    "document_on_order_invoice_required": true,
+    "hide_shipping_calculation_at_beginning_catalog": false,
+    "send_order_by_whatsapp": true,
+    "show_address_block_and_lot": true,
+    "show_provider_brand": false,
+    "show_sales_modal": true,
+    "simplified_address_input": true,
+    "verify_client_phone": false,
+    "work_with_delivery": true,
+    "work_with_normal_ordering": true,
+    "work_with_pick_up_store": false,
+    "work_with_onsite": false,
+    "work_with_scheduled_order": false,
+    "show_categories_first": false,
+    "address_landmark_required": false,
+    "chatbot_save_contacts_automatically": true,
+    "chatbot_cwai_active": true,
+    "require_customer_on_menu_table_orders": false
+  },
+  "delivery_only_for_neighborhoods": [],
+  "schedule_setting": {
+    "id": 21437,
+    "block_schedule_for_the_same_day": true,
+    "hours_in_advance_for_scheduling": 1,
+    "maximum_days_for_scheduling": 15,
+    "order_schedule_only_for_next_available_day": false,
+    "quantity_of_orders_per_interval": null,
+    "time_interval": 30,
+    "quantity_of_orders_grouped": [],
+    "delivery_period": {
+      "sunday": [
+        "17:00",
+        "23:00"
+      ],
+      "monday": [
+        "17:00",
+        "23:00"
+      ],
+      "tuesday": [
+        "17:00",
+        "23:00"
+      ],
+      "wednesday": [
+        "17:00",
+        "23:00"
+      ],
+      "thursday": [
+        "17:00",
+        "23:00"
+      ],
+      "friday": [
+        "17:00",
+        "23:00"
+      ],
+      "saturday": [
+        "17:00",
+        "23:00"
+      ],
+      "custom_dates": null
+    }
+  },
+  "coupons": [],
+  "loyalty_program_setting": {
+    "id": 22259,
+    "points_per_currency_unit": 1,
+    "signup_reward_active": false,
+    "signup_reward_points": 10
+  },
+  "events": [],
+  "profile_medias": {
+    "header": [],
+    "highlights": []
+  },
+  "item_suggestions": []
+}

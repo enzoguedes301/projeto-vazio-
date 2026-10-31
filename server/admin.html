@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pedidos — painel</title>
+<style>
+  :root { --bg:#f4f5f7; --card:#fff; --txt:#1f2937; --mut:#6b7280; --line:#e5e7eb; --ok:#16a34a; --warn:#d97706; --bad:#dc2626; --pri:#111; }
+  * { box-sizing:border-box }
+  [hidden] { display:none !important }
+  body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.45 Rubik,system-ui,sans-serif }
+  header { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 16px; background:var(--pri); color:#fff; position:sticky; top:0; z-index:5 }
+  header h1 { font-size:16px; margin:0 12px 0 0; font-weight:600 }
+  header select, header button, header input { font:inherit; padding:6px 10px; border-radius:6px; border:1px solid #444; background:#222; color:#fff }
+  header .sp { flex:1 }
+  main { padding:16px; display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)) }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:8px }
+  .card.novo { outline:2px solid var(--ok) }
+  .top { display:flex; justify-content:space-between; align-items:baseline; gap:8px }
+  .num { font-size:18px; font-weight:700 }
+  .tag { font-size:12px; padding:3px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; white-space:nowrap }
+  .tag.created,.tag.confirmed,.tag.waiting_confirmation { background:#fef3c7; color:#92400e }
+  .tag.pending_online_payment { background:#fde68a; color:#78350f }
+  .tag.ready { background:#e0f2fe; color:#075985 }
+  .tag.released { background:#ede9fe; color:#5b21b6 }
+  .tag.delivered,.tag.closed { background:#dcfce7; color:#166534 }
+  .tag.canceled { background:#fee2e2; color:#991b1b }
+  .mut { color:var(--mut); font-size:13px }
+  .itens { margin:0; padding:0; list-style:none; font-size:13px }
+  .itens li { display:flex; justify-content:space-between; gap:8px; padding:2px 0; border-bottom:1px dashed var(--line) }
+  .itens li span:first-child { flex:1 }
+  .tot { display:flex; justify-content:space-between; font-weight:600 }
+  .acoes { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px }
+  .acoes button { font:inherit; font-size:13px; padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer }
+  .acoes button.bad { color:var(--bad); border-color:#fecaca }
+  .acoes button.ok { color:var(--ok); border-color:#bbf7d0 }
+  .vazio { grid-column:1/-1; text-align:center; color:var(--mut); padding:60px 0 }
+  .timeline { font-size:12px; color:var(--mut) }
+  .timeline b { color:var(--txt) }
+  #login { max-width:360px; margin:80px auto; background:#fff; padding:24px; border-radius:10px; border:1px solid var(--line) }
+  #login input, #login button { width:100%; font:inherit; padding:10px; border-radius:6px; border:1px solid var(--line); margin-top:8px }
+  #login button { background:var(--pri); color:#fff; cursor:pointer }
+</style>
+</head>
+<body>
+
+<div id="login" hidden>
+  <h2 style="margin:0 0 4px">Painel de pedidos</h2>
+  <div class="mut">Informe o <code>admin_token</code> de <code>server/config.json</code></div>
+  <input id="tok" type="password" placeholder="token" autofocus />
+  <button id="entrar">Entrar</button>
+</div>
+
+<header hidden id="barra">
+  <h1>Pedidos</h1>
+  <select id="cidade"><option value="">Todas as cidades</option></select>
+  <label style="font-size:13px"><input type="checkbox" id="som" checked style="width:auto;margin-right:4px" />som</label>
+  <span class="sp"></span>
+  <span id="info" class="mut" style="color:#bbb"></span>
+  <button id="sair">Sair</button>
+</header>
+<main id="lista" hidden></main>
+
+<script>
+const LABEL = { pending_online_payment:"Aguardando Pix", created:"Recebido", waiting_confirmation:"Pix confirmado", confirmed:"Em produção", ready:"Aguardando motorista", released:"Entrega em andamento", delivered:"Entregue", closed:"Concluído", canceled:"Cancelado" };
+const PGTO = { pendente:["Pix pendente","#fef3c7","#92400e"], pago:["Pix PAGO","#dcfce7","#166534"], expirado:["Pix expirado","#fee2e2","#991b1b"], falhou:["Pix recusado","#fee2e2","#991b1b"] };
+const PAG = { money:"Dinheiro", debit_card:"Débito", credit_card:"Crédito", pix:"Pix", pix_auto:"Pix" };
+const R$ = v => (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const hora = s => new Date(s).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+let token = localStorage.getItem("admin_token") || "";
+let vistos = new Set(JSON.parse(localStorage.getItem("vistos")||"[]"));
+let timer = null;
+
+const $ = s => document.querySelector(s);
+function mostrarLogin(){ $("#login").hidden=false; $("#barra").hidden=true; $("#lista").hidden=true; }
+function mostrarPainel(){ $("#login").hidden=true; $("#barra").hidden=false; $("#lista").hidden=false; }
+
+function beep(){
+  if(!$("#som").checked) return;
+  try{ const a=new AudioContext(), o=a.createOscillator(), g=a.createGain(); o.connect(g); g.connect(a.destination);
+    o.frequency.value=880; g.gain.value=.15; o.start(); setTimeout(()=>{o.frequency.value=1175},150); setTimeout(()=>{o.stop();a.close()},400);}catch(e){}
+}
+
+async function api(caminho, opts={}){
+  const r = await fetch(caminho,{...opts,headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json",...(opts.headers||{})}});
+  if(r.status===401){ localStorage.removeItem("admin_token"); token=""; mostrarLogin(); throw new Error("401"); }
+  return r.json();
+}
+
+function endereco(a){
+  if(!a) return "";
+  return [a.street, a.house_number, a.address_complement, a.neighborhood, a.city && `${a.city} - ${a.state}`, a.landmark && `(${a.landmark})`].filter(Boolean).join(", ");
+}
+
+function card(p){
+  const ativo = !["closed","canceled"].includes(p.status);
+  const novo = !vistos.has(p.id);
+  const pags = (p.payment_values||[]).map(v=>`${PAG[v.payment_method]||v.payment_method}${v.change_of?` (troco p/ ${R$(v.change_of)})`:""}`).join(", ");
+  const tl = p.status_changes.map(c=>`<b>${LABEL[c.status]||c.status}</b> ${hora(c.created_at)}`).join(" → ");
+  return `<div class="card ${novo&&ativo?"novo":""}" data-id="${p.id}">
+    <div class="top"><span class="num">#${p.order_number} <span class="mut" style="font-weight:400">${p.company?.city||""}</span></span><span class="tag ${p.status}">${LABEL[p.status]||p.status}</span></div>
+    <div><b>${p.client?.name||"-"}</b> · <a href="tel:+${p.client?.ddi||55}${p.client?.telephone||""}">${p.client?.telephone||""}</a> <span class="mut">· ${hora(p.created_at)}</span></div>
+    <div class="mut">${endereco(p.delivery_address)}</div>
+    <ul class="itens">${(p.order_items||[]).map(i=>`<li><span>${i.quantity}× ${i.name}${i.observation?` <span class="mut">(${i.observation})</span>`:""}</span><span>${R$(i.price)}</span></li>`).join("")}</ul>
+    <div class="mut">Entrega: ${R$(p.delivery_fee)} · Pagamento: ${pags||"-"} ${p.pagamento&&PGTO[p.pagamento]?`<span class="tag" style="background:${PGTO[p.pagamento][1]};color:${PGTO[p.pagamento][2]}">${PGTO[p.pagamento][0]}</span>`:""} · Previsão: ${p.estimated_time} min</div>
+    <div class="tot"><span>Total</span><span>${R$(p.final_value)}</span></div>
+    ${p.cancellation_reason?`<div class="mut" style="color:var(--bad)">Motivo: ${p.cancellation_reason}</div>`:""}
+    <div class="timeline">${tl}</div>
+    ${ativo?`<div class="acoes">
+      ${p.status!=="delivered"?`<button class="ok" data-acao="entregar">Marcar entregue</button>`:""}
+      <button data-acao="concluir">Concluir</button>
+      <button class="bad" data-acao="cancelar">Cancelar</button>
+    </div>`:""}
+  </div>`;
+}
+
+async function carregar(){
+  try{
+    const cidade = $("#cidade").value;
+    const d = await api("/admin/api/pedidos"+(cidade?`?cidade=${cidade}`:""));
+    const sel=$("#cidade"); if(sel.options.length===1) d.cidades.forEach(c=>{const o=document.createElement("option");o.value=c.slug;o.textContent=`${c.nome} - ${c.uf}`;sel.appendChild(o);});
+    const ativos = d.pedidos.filter(p=>!["closed","canceled"].includes(p.status));
+    const novos = ativos.filter(p=>!vistos.has(p.id));
+    if(novos.length){ beep(); document.title=`(${novos.length}) Pedidos`; } else document.title="Pedidos — painel";
+    $("#lista").innerHTML = d.pedidos.length ? d.pedidos.map(card).join("") : `<div class="vazio">Nenhum pedido nas últimas 36 h</div>`;
+    $("#info").textContent = `${ativos.length} em andamento · atualizado ${hora(d.agora)}`;
+  }catch(e){ if(e.message!=="401") $("#info").textContent="erro ao carregar"; }
+}
+
+$("#lista").addEventListener("click", async e=>{
+  const b=e.target.closest("button[data-acao]"); if(!b) return;
+  const id=b.closest(".card").dataset.id, acao=b.dataset.acao;
+  let motivo=null;
+  if(acao==="cancelar"){ motivo=prompt("Motivo do cancelamento (o cliente vê):"); if(motivo===null) return; }
+  await api(`/admin/api/pedidos/${id}/${acao}`,{method:"POST",body:JSON.stringify({motivo})});
+  carregar();
+});
+$("#lista").addEventListener("mouseover", e=>{ const c=e.target.closest(".card.novo"); if(c){ vistos.add(Number(c.dataset.id)); localStorage.setItem("vistos",JSON.stringify([...vistos].slice(-500))); c.classList.remove("novo"); document.title="Pedidos — painel"; } });
+$("#cidade").addEventListener("change", carregar);
+$("#entrar").addEventListener("click", ()=>{ token=$("#tok").value.trim(); localStorage.setItem("admin_token",token); iniciar(); });
+$("#tok").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#entrar").click(); });
+$("#sair").addEventListener("click", ()=>{ localStorage.removeItem("admin_token"); token=""; clearInterval(timer); mostrarLogin(); });
+
+function iniciar(){ if(!token) return mostrarLogin(); mostrarPainel(); carregar(); clearInterval(timer); timer=setInterval(carregar,15000); }
+iniciar();
+</script>
+</body>
+</html>

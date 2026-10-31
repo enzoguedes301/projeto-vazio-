@@ -1,0 +1,8 @@
+{
+  "padrao": {
+    "nome": "São Paulo",
+    "uf": "SP"
+  },
+  "detectar_por_ip": true,
+  "cardapio": "padrao"
+}

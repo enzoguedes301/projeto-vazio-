@@ -1,0 +1,40 @@
+{
+  "porta": 8090,
+  "admin_token": "troque-esta-senha",
+
+  "linha_do_tempo_min": {
+    "confirmed": 0,
+    "ready": 30,
+    "released": 45,
+    "entregue_automatico": false,
+    "entregue_padrao": 70,
+    "closed_apos_entrega": 30
+  },
+
+  "entrega": {
+    "tempo_base_min": 15,
+    "min_por_km": 3,
+    "raio_max_km": 15,
+    "faixas": [
+      { "ate_km": 3, "taxa": 6.0 },
+      { "ate_km": 6, "taxa": 9.0 },
+      { "ate_km": 10, "taxa": 13.0 }
+    ],
+    "taxa_km_extra": 1.5,
+    "taxa_padrao_sem_geo": 9.0,
+    "distancia_padrao_sem_geo_km": 4
+  },
+
+  "meta": {
+    "pixel_id": "1906765316962667"
+  },
+
+  "pix": {
+    "provedor": "tronfy",
+    "expiracao_min": 30
+  },
+
+  "geocoder": {
+    "user_agent": "cardapio/1.0 (contato@exemplo.com)"
+  }
+}

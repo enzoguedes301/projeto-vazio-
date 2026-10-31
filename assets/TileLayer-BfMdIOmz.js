@@ -1,0 +1,1 @@
+import{l as r}from"./leaflet-src-B1JByFbC.js";import{c as o,w as l}from"./generic-BMlk6g0D.js";import"./index-DXIKYQC4.js";function c(i,n,e){const{opacity:t,zIndex:a}=n;t!=null&&t!==e.opacity&&i.setOpacity(t),a!=null&&a!==e.zIndex&&i.setZIndex(a)}const u=o(function(n,e){let{url:t,...a}=n;return{instance:new r.TileLayer(t,l(a,e)),context:e}},c);export{u as default};

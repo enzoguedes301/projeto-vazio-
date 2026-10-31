@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+
+    <link rel="preload" href="/fonts/Rubik.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="manifest" href="/manifest.json" />
+
+    <title>OSAKA Sushi Lounge</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OSAKA Sushi Lounge" />
+    <meta property="og:title" content="OSAKA Sushi Lounge" />
+    <meta name="title" content="OSAKA Sushi Lounge" />
+    <link rel="preload" as="image" href="/img/8d6795ed3a2d.png" />
+    <link rel="apple-touch-icon" href="/img/8d6795ed3a2d.png" />
+    <meta property="og:image" itemprop="image" content="/img/8d6795ed3a2d.png" />
+    <link rel="icon" href="/img/8d6795ed3a2d.png" type="image/png" />
+
+    <style>:root{--primary:#000000;--primary-contrast:#ffffff;--header:#000000;--background:#f4f5f7;}</style>
+
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1906765316962667');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1906765316962667&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
+    <noscript id="jss-insertion-point"></noscript>
+    <link rel="stylesheet" crossorigin href="/assets/index-6WNQ_WJg.css">
+
+    <!--
+      Carregador de cidade. Pergunta ao servidor (GET /api/cidade) qual é a cidade do lead:
+        1. cidade na URL            /ituiutaba-mg, /sao-paulo-sp/sacola ...
+        2. escolha feita no seletor localStorage "cidade_escolhida"
+        3. detecção por IP          feita no servidor
+        4. padrão                   dados/cidades.json (São Paulo - SP)
+      Precisa rodar ANTES do bundle, porque o app lê window.companySlug ao carregar.
+    -->
+    <script>
+    (async function () {
+      var APP_ROUTES = ["erro-404", "table-not-found", "e", "admin", "api"];
+      var seg = location.pathname.split("/")[1] || "";
+      var segEhRota = APP_ROUTES.indexOf(seg) !== -1;
+      var escolhida = null;
+      try { escolhida = localStorage.getItem("cidade_escolhida"); } catch (e) {}
+
+      var slugPedido = (seg && !segEhRota) ? seg : escolhida;
+      var c;
+      try {
+        c = await fetch("/api/cidade" + (slugPedido ? "?slug=" + encodeURIComponent(slugPedido) : "")).then(function (r) { return r.json(); });
+      } catch (e) {
+        document.body.innerHTML = "<p style='font-family:sans-serif;padding:24px'>Não foi possível carregar o cardápio. Verifique a conexão e recarregue.</p>";
+        return;
+      }
+
+      window.__CIDADE = {
+        id: c.id, slug: c.slug, nome: c.nome, uf: c.uf, origem: c.origem,
+        profile: "/api/perfil/" + c.slug + ".json",
+        cardapio: "/dados/cardapios/" + c.cardapio
+      };
+      window.companySlug = c.slug;
+      window.companyId = c.id;
+
+      // raiz, ou slug que não resolveu -> URL canônica da cidade escolhida
+      if (!seg || (!segEhRota && seg !== c.slug)) {
+        history.replaceState(null, "", "/" + c.slug + location.search + location.hash);
+      }
+
+      var s = document.createElement("script");
+      s.type = "module"; s.crossOrigin = ""; s.src = "/assets/index-DXIKYQC4.js";
+      document.head.appendChild(s);
+
+      var w = document.createElement("script");
+      w.src = "/cidades.js"; w.defer = true;
+      document.head.appendChild(w);
+    })();
+    </script>
+  </head>
+
+  <body>
+    <noscript>
+      Você precisa habilitar o javascript para executar este aplicativo. Se não souber como fazer
+      isso, entre em contato com o suporte.
+    </noscript>
+
+    <div id="initial-splash-screen-loader" class="bg-primary" style=" position: fixed; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 1; transition: opacity 0.3s ease-in-out; " > <div style="display: flex; flex-direction: column; align-items: center"> <div class="cw-chase"> <div class="cw-chase-dot"></div> <div class="cw-chase-dot"></div> <div class="cw-chase-dot"></div> <div class="cw-chase-dot"></div> <div class="cw-chase-dot"></div> <div class="cw-chase-dot"></div> </div> </div> </div><div id="root"></div>
+  </body>
+</html>
