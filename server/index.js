@@ -73,6 +73,14 @@ function tokenDe(req) {
   return h.replace(/^Bearer\s+/i, "").trim() || null;
 }
 const clienteAutenticado = (req) => clientes.porToken(tokenDe(req));
+// Identificado = o app só pediu telefone + nome (sem senha). Vem no header X-Client-Id (uuid do cliente).
+// Suficiente pra criar pedido, como no app original; histórico e dados da conta continuam exigindo senha.
+async function clienteIdentificado(req) {
+  const c = await clienteAutenticado(req);
+  if (c) return c;
+  const id = String(req.headers["x-client-id"] || "");
+  return /^[0-9a-f-]{36}$/i.test(id) ? clientes.porRef(id) : null;
+}
 async function serializarCliente(c, comToken) {
   if (!c) return null;
   const client = {
@@ -204,8 +212,8 @@ rota("POST", "/api/menu/company/client/([^/]+)/recover_password", (_, res) =>
 
 // --- pedidos
 rota("POST", "/api/menu/company/orders/new_version", async (req, res) => {
-  const c = await clienteAutenticado(req);
-  if (!c) return erro(res, 401, "Identifique-se para finalizar o pedido");
+  const c = await clienteIdentificado(req);
+  if (!c) { log(`pedido recusado: sem token nem X-Client-Id (auth=${!!req.headers.authorization}, xcid=${req.headers["x-client-id"] || "-"})`); return erro(res, 401, "Identifique-se para finalizar o pedido"); }
   const b = await lerCorpo(req);
   if (!Array.isArray(b.order_items) || b.order_items.length === 0) return erro(res, 422, "Pedido sem itens");
   const cidade = await cidadeDaRequisicao(req);
@@ -312,7 +320,7 @@ rota("POST", "/api/menu/company/track_event", async (req, res) => {
   if (!Meta.ativo()) return json(res, 204);
   try {
     const ev = await lerCorpo(req);
-    const cliente = (await clienteAutenticado(req)) || (ev.client_id ? await clientes.porRef(ev.client_id) : null);
+    const cliente = (await clienteIdentificado(req)) || (ev.client_id ? await clientes.porRef(ev.client_id) : null);
     const r = await Meta.enviar(cfg.meta.pixel_id, ev, { ip: Cidades.ipDaRequisicao(req), userAgent: req.headers["user-agent"], cliente });
     if (!r.ok && r.motivo !== "inativo") log(`META ${ev.event_name}: ${r.motivo}`);
   } catch (e) { log(`META erro: ${e.message}`); }
